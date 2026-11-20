@@ -1,0 +1,8 @@
+GST NOTICE - Show Cause Notice under Section 73
+Notice Type: Show Cause Notice (ITC mismatch)
+Ref No: ZD2910261234567
+Date: 2026-11-15
+Period: 2026-10
+Amount Demanded: 6000
+Reply By: 2026-12-12
+Subject: ITC claimed in GSTR-3B exceeds ITC available in GSTR-2B for the period. Please explain the difference.

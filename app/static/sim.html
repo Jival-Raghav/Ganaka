@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ganaka Simulator</title>
+<link rel="stylesheet" href="/static/app.css"></head>
+<body><div class="banner">Demo control panel: WhatsApp simulator (stands in for Twilio sandbox / second phones) + mock portal controls.</div>
+<div class="wrap"><div class="row"><h1>WhatsApp & portal simulator</h1><span class="sp"></span><a href="/">Owner app</a> · <a href="/accountant">Accountant</a></div>
+<div class="grid"><div class="card"><h3>Phone</h3><select id="who"></select><div id="thread" style="max-height:46vh;overflow:auto;margin:8px 0"></div>
+<div class="row"><input id="txt" placeholder="Type a message as this person…" style="flex:1"><button id="send">Send</button></div>
+<div class="row" style="margin-top:8px"><input type="file" id="file" style="flex:1"><button class="ghost" id="sendfile">Send file</button></div>
+<p class="mute">Owner/staff numbers talk to the agent (forward bills, ask questions). Transporters reply with vehicle numbers; suppliers reply “filed today”.</p></div>
+<div class="card stack"><h3>Mock portal controls</h3><label>Make a supplier file their GSTR-1 now</label><div class="row"><select id="sup" style="flex:1"></select><button id="supfile">Supplier files</button></div>
+<button class="ghost" id="pub">Publish the 14-digit e-way bill advisory</button><button class="ghost" id="jobs">Run scheduler jobs now</button><button class="danger" id="reseed">Reset demo data</button>
+<h3>Demo files to forward</h3><div id="files"></div><div id="out" class="mute"></div></div></div></div>
+<script src="/static/common.js"></script>
+<script>
+let contacts=[];const OWNER='9845012345';
+async function loadContacts(){contacts=await (await fetch('/api/dev/contacts')).json();$('#who').innerHTML=contacts.map(c=>`<option value="${c.phone}">${esc(c.name)} · ${esc(c.type)}${c.biz?' ('+esc(c.biz)+')':''}</option>`).join('');$('#who').value=OWNER;
+ const sup=await (await fetch('/api/dev/suppliers')).json();$('#sup').innerHTML=sup.map(s=>`<option value="${s.gstin}">${esc(s.name)}</option>`).join('');}
+async function thread(){const ph=$('#who').value;const all=await (await fetch('/api/dev/messages?limit=300')).json();const mine=all.filter(m=>m.counterparty===ph).reverse();
+ $('#thread').innerHTML=mine.map(m=>`<div class="wa ${m.direction==='in'?'in':''}">${esc(m.body)}<div class="mute">${m.direction==='in'?'you →':'Ganaka →'} ${esc(m.biz||'')} · ${m.created_at.slice(11,16)}</div></div>`).join('')||'<span class="mute">No messages yet.</span>';$('#thread').scrollTop=1e9}
+async function post(path,body,form){const r=await fetch(path,form?{method:'POST',body:form}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});return r.json()}
+$('#send').onclick=async()=>{const t=$('#txt').value;if(!t)return;$('#txt').value='';await post('/api/dev/whatsapp',{phone:$('#who').value,text:t});thread()};
+$('#txt').onkeydown=e=>{if(e.key==='Enter')$('#send').click()};
+$('#sendfile').onclick=async()=>{const f=$('#file').files[0];if(!f)return;const fd=new FormData();fd.append('phone',$('#who').value);fd.append('file',f);fd.append('body','');const r=await post('/api/dev/whatsapp-file',null,fd);$('#out').textContent=r.reply;thread()};
+$('#who').onchange=thread;
+$('#supfile').onclick=async()=>{const r=await post('/api/dev/supplier-files',{supplier_gstin:$('#sup').value});$('#out').textContent=`Supplier filed: ${r.made_visible} invoice(s) now visible in IMS/2B. Refresh “Suppliers” in the owner app to see the credit recovered.`};
+$('#pub').onclick=async()=>{await post('/api/dev/publish-advisory');$('#out').textContent='Advisory published on the mock portal. In the accountant console → Rule updates, click “Scan sources now”.'};
+$('#jobs').onclick=async()=>{const r=await post('/api/dev/run-jobs');$('#out').textContent=JSON.stringify(r)};
+$('#reseed').onclick=async()=>{if(!confirm('Reset all demo data?'))return;await post('/api/dev/reseed');$('#out').textContent='Reset done.';loadContacts();thread()};
+async function loadFiles(){const f=await (await fetch('/api/dev/demo-files')).json();$('#files').innerHTML=Object.keys(f).map(k=>`<div class="row"><code style="flex:1">${esc(k)}</code><button class="small ghost" data-k="${esc(k)}">Send as Ramesh</button></div>`).join('');
+ $$('#files button').forEach(b=>b.onclick=async()=>{const k=b.dataset.k;const blob=new Blob([f[k]],{type:'text/plain'});const fd=new FormData();fd.append('phone',OWNER);fd.append('body','');fd.append('file',blob,k.split('/').pop());const r=await post('/api/dev/whatsapp-file',null,fd);$('#who').value=OWNER;$('#out').textContent=r.reply;thread()})}
+loadContacts().then(()=>{thread();loadFiles();setInterval(thread,4000)});
+</script></body></html>

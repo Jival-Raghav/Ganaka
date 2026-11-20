@@ -1,0 +1,14 @@
+From: accounts@guptafasteners.example
+Subject: Invoice GF-2026-771
+
+Seller: Gupta Fasteners
+Seller GSTIN: 29MAHPG4196O1ZO
+Buyer: Ramesh Hardware
+Buyer GSTIN: 29BJNPR6650I1ZG
+Invoice No: GF/2026/771
+Date: 2026-11-17
+Place of Supply: 29
+Item: Hex bolts M12 | 7318 | 200 | 95 | 18
+Paid: yes
+Pay Mode: UPI
+Total: 22420

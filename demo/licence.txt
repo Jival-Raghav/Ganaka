@@ -1,0 +1,5 @@
+Trade Licence
+Type: Trade licence
+Number: TL/BLR/88123
+Issued: 2025-11-01
+Expiry: 2026-12-31

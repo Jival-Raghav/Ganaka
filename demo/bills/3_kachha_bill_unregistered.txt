@@ -1,0 +1,8 @@
+Seller: Local Scrap Dealer
+Buyer: Ramesh Hardware
+Buyer GSTIN: 29BJNPR6650I1ZG
+Invoice No: K-12
+Date: 2026-11-16
+Item: Packing material | 4819 | 30 | 45 | 0
+Paid: yes
+Pay Mode: cash

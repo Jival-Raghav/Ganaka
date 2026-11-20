@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+data/*.db
+data/*.db-*
+deck/node_modules/
+deck/render/
+deck/slide-*.jpg
+deck/*.pdf
+.env

@@ -1,0 +1,21 @@
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function money(p,paise=false){p=Number(p||0);const neg=p<0;p=Math.abs(p);let r=Math.floor(p/100),ps=p%100;let s=String(r);if(s.length>3){let h=s.slice(0,-3),t=s.slice(-3),parts=[];while(h.length>2){parts.unshift(h.slice(-2));h=h.slice(0,-2)}if(h)parts.unshift(h);s=parts.join(',')+','+t}if(paise&&ps)s+='.'+String(ps).padStart(2,'0');return(neg?'-':'')+'₹'+s}
+let TOKEN=localStorage.getItem('munshi_token_'+location.pathname)||'';
+async function api(path,opts={}){const h={...(opts.headers||{})};if(TOKEN)h.Authorization='Bearer '+TOKEN;let body=opts.body;if(body&&!(body instanceof FormData)&&typeof body!=='string'){body=JSON.stringify(body);h['Content-Type']='application/json'}
+ const r=await fetch(path,{method:opts.method||(body?'POST':'GET'),headers:h,body});let d=null;try{d=await r.json()}catch(e){}
+ if(!r.ok){const m=(d&&(d.detail||d.error))||r.statusText;if(r.status===401&&!opts.quiet){logout()}throw new Error(typeof m==='string'?m:JSON.stringify(m))}return d}
+function setToken(t){TOKEN=t;localStorage.setItem('munshi_token_'+location.pathname,t)}
+function logout(){TOKEN='';localStorage.removeItem('munshi_token_'+location.pathname);location.reload()}
+function toast(m,ms=3200){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),ms)}
+function modal(html){return new Promise(res=>{const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="box">${html}</div>`;document.body.appendChild(m);m.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){const v=b.dataset.v;const inp=$('input,textarea',m);m.remove();res(v==='ok'&&inp?inp.value:v)}else if(e.target===m){m.remove();res('cancel')}})})}
+const confirmBox=async(txt,ok='Approve')=>(await modal(`<p>${esc(txt)}</p><div class="row"><button data-v="ok">${esc(ok)}</button><button class="ghost" data-v="cancel">Cancel</button></div>`))==='ok';
+const promptBox=async(txt,val='')=>{const v=await modal(`<p>${esc(txt)}</p><input value="${esc(val)}" autofocus><div class="row" style="margin-top:10px"><button data-v="ok">OK</button><button class="ghost" data-v="cancel">Cancel</button></div>`);return v==='cancel'?null:v}
+const pill=(t,k='')=>`<span class="pill ${k}">${esc(t)}</span>`;
+const statusPill=s=>pill(String(s).replace(/_/g,' '),{posted:'ok',filed_simulated:'ok',approved:'ok',matched:'ok',generated_simulated:'ok',ready:'ok',done:'ok',needs_review:'warn',awaiting_owner:'warn',awaiting_accountant:'info',pending:'warn',draft:'warn',awaiting_part_b:'warn',missing_in_2b:'bad',value_mismatch:'warn',gstin_mismatch:'warn',missing_in_books:'warn',overdue:'bad',expired:'bad',rejected:'bad',high:'bad',medium:'warn',low:'info',payment_overdue:'bad'}[s]||'');
+const BCP={en:'en-IN',hi:'hi-IN',kn:'kn-IN'};
+function speak(text,lang){if(!('speechSynthesis' in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=BCP[lang]||'en-IN';speechSynthesis.speak(u)}
+async function sarvamSpeak(text,lang){try{const r=await api('/api/voice/speak',{body:{text,lang}});if(r.audio_base64){new Audio('data:audio/wav;base64,'+r.audio_base64).play();return}}catch(e){}speak(text,lang)}
+function listen(lang,cb){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('Voice input needs Chrome/Edge. Type instead.');return null}const r=new SR();r.lang=BCP[lang]||'en-IN';r.interimResults=false;r.onresult=e=>cb(e.results[0][0].transcript);r.onerror=e=>toast('Mic: '+e.error);r.start();return r}
+function table(cols,rows){return `<div class="scroll"><table><tr>${cols.map(c=>`<th class="${c.r?'r':''}">${esc(c.h)}</th>`).join('')}</tr>${rows.map(r=>`<tr>${cols.map(c=>`<td class="${c.r?'r':''}">${c.f(r)}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${cols.length}" class="mute">Nothing here.</td></tr>`}</table></div>`}
+const ACT={};document.addEventListener('click',async e=>{const b=e.target.closest('[data-act]');if(!b)return;e.preventDefault();const fn=ACT[b.dataset.act];if(!fn)return;b.disabled=true;try{await fn(b.dataset,b)}catch(err){toast(err.message,5000)}finally{b.disabled=false}});

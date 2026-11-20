@@ -1,0 +1,9 @@
+Seller: Nair Plastics
+Seller GSTIN: 29PPHPN1275O1ZT
+Buyer: Ramesh Hardware
+Buyer GSTIN: 29BJNPR6650I1ZG
+Invoice No: NP-3320
+Date: 2026-11-18
+Place of Supply: 29
+Item: PVC pipe 2 inch [blurry] | 3917 | 40 | 310 or 31 | 18
+Paid: no

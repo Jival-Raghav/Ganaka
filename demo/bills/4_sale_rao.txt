@@ -1,0 +1,10 @@
+Seller: Ramesh Hardware
+Seller GSTIN: 29BJNPR6650I1ZG
+Buyer: Rao Interiors
+Buyer GSTIN: 29PJLPR2072L1Z6
+Invoice No: RH/26-27/0950
+Date: 2026-11-19
+Place of Supply: 29
+Item: Power drill 650W | 8467 | 12 | 2450 | 18
+Goods Movement: yes
+Paid: no
